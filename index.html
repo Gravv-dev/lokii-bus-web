@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crumb &amp; Co. — Freshly Baked Happiness</title>
+  <meta name="description" content="Crumb & Co. bakes small-batch cookies daily with real butter, Belgian chocolate and a lot of love. Build your own box of happiness." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍪</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============ PRELOADER ============ -->
+  <div class="preloader" id="preloader">
+    <div class="preloader__inner">
+      <div class="preloader__cookie"><span class="preloader__bite"></span></div>
+      <p class="preloader__text">Warming the oven…</p>
+    </div>
+  </div>
+
+  <!-- ============ CURSOR ============ -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="#top" class="nav__logo" data-cursor="hover">
+        <span class="nav__logo-dot"></span> Crumb&nbsp;&amp;&nbsp;Co.
+      </a>
+      <nav class="nav__links" id="navLinks">
+        <a href="#shop" data-cursor="hover">Shop</a>
+        <a href="#story" data-cursor="hover">Our story</a>
+        <a href="#process" data-cursor="hover">How we bake</a>
+        <a href="#box" data-cursor="hover">Build a box</a>
+      </nav>
+      <div class="nav__actions">
+        <button class="nav__cart" id="cartBtn" data-cursor="hover" aria-label="Cart">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="nav__cart-count" id="cartCount">0</span>
+        </button>
+        <a href="#shop" class="btn btn--small nav__cta" data-cursor="hover">Order now</a>
+        <button class="nav__burger" id="burger" aria-label="Menu"><span></span><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="hero" id="hero">
+      <canvas class="hero__canvas" id="cookieCanvas" aria-hidden="true"></canvas>
+      <div class="hero__glow" aria-hidden="true"></div>
+
+      <div class="hero__content">
+        <p class="hero__eyebrow" data-fade>Baked fresh every single morning</p>
+        <h1 class="hero__title">
+          <span class="line"><span class="word">Cookies</span> <span class="word">that</span></span>
+          <span class="line"><span class="word word--italic">melt</span> <span class="word">your</span></span>
+          <span class="line"><span class="word">day.</span></span>
+        </h1>
+        <p class="hero__sub" data-fade>
+          Small-batch, real butter, absurdly good chocolate. Hand-rolled in our
+          little bakery and shipped warm-hearted to your door.
+        </p>
+        <div class="hero__cta" data-fade>
+          <a href="#shop" class="btn btn--primary" data-cursor="hover">Taste the batch</a>
+          <a href="#box" class="btn btn--ghost" data-cursor="hover">Build your box</a>
+        </div>
+
+        <div class="hero__stats" data-fade>
+          <div class="stat"><strong data-count="12">0</strong><span>fresh flavours</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><strong data-count="48">0</strong><span>hour max shelf life</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><strong data-count="9">0</strong><span>baked before sunrise</span></div>
+        </div>
+      </div>
+
+      <div class="hero__badge" id="heroBadge" aria-hidden="true">
+        <svg viewBox="0 0 200 200" class="hero__badge-svg">
+          <defs><path id="circlePath" d="M100,100 m-72,0 a72,72 0 1,1 144,0 a72,72 0 1,1 -144,0"/></defs>
+          <text><textPath href="#circlePath">FRESHLY BAKED • SMALL BATCH • SINCE 2014 • </textPath></text>
+        </svg>
+        <span class="hero__badge-emoji">🍪</span>
+      </div>
+
+      <a href="#marquee" class="hero__scroll" data-cursor="hover">
+        <span>scroll</span>
+        <i></i>
+      </a>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <section class="marquee" id="marquee">
+      <div class="marquee__track" id="marqueeTrack">
+        <div class="marquee__group">
+          <span>Real butter</span><i>🍪</i><span>Belgian chocolate</span><i>🍪</i>
+          <span>Baked at 5am</span><i>🍪</i><span>No weird stuff</span><i>🍪</i>
+          <span>Warm delivery</span><i>🍪</i>
+        </div>
+        <div class="marquee__group" aria-hidden="true">
+          <span>Real butter</span><i>🍪</i><span>Belgian chocolate</span><i>🍪</i>
+          <span>Baked at 5am</span><i>🍪</i><span>No weird stuff</span><i>🍪</i>
+          <span>Warm delivery</span><i>🍪</i>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STORY ============ -->
+    <section class="story section" id="story">
+      <div class="story__media" data-parallax>
+        <div class="story__photo story__photo--main">
+          <div class="cookie-art cookie-art--lg" style="--dough:#e0a45c;--chip:#3b2314"></div>
+        </div>
+        <div class="story__photo story__photo--float">
+          <div class="cookie-art" style="--dough:#c98a4b;--chip:#5b3a22"></div>
+        </div>
+        <div class="story__sticker">Since<br>2014</div>
+      </div>
+
+      <div class="story__text">
+        <p class="section__eyebrow" data-fade>Our story</p>
+        <h2 class="section__title" data-split>A tiny kitchen, a very big obsession.</h2>
+        <p class="story__body" data-fade>
+          It started with one oven, one recipe book and a stubborn belief that a
+          cookie should be crisp at the edge and properly gooey in the middle.
+          Ten years later we still roll every cookie by hand — we just own three
+          ovens now.
+        </p>
+        <ul class="story__list">
+          <li data-fade><span>01</span> Butter from a family dairy, never palm oil</li>
+          <li data-fade><span>02</span> Chocolate folded in while it's still melty</li>
+          <li data-fade><span>03</span> Baked in batches of 24, sold the same day</li>
+        </ul>
+        <a href="#process" class="btn btn--ghost" data-cursor="hover" data-fade>See how we bake</a>
+      </div>
+    </section>
+
+    <!-- ============ SHOP ============ -->
+    <section class="shop section" id="shop">
+      <div class="section__head">
+        <div>
+          <p class="section__eyebrow" data-fade>The good stuff</p>
+          <h2 class="section__title" data-split>Bestsellers of the batch</h2>
+        </div>
+        <p class="section__note" data-fade>Every box is baked the morning it ships.<br>Pick your poison ↓</p>
+      </div>
+
+      <div class="shop__grid" id="shopGrid">
+        <article class="card" data-tilt data-cursor="hover">
+          <div class="card__art"><div class="cookie-art" style="--dough:#e3ac66;--chip:#2f1b10"></div></div>
+          <div class="card__body">
+            <div class="card__row"><h3>The Classic Chip</h3><span class="card__price">$3.50</span></div>
+            <p>Dark 70% chunks, flaky sea salt, crispy rim.</p>
+            <div class="card__foot">
+              <span class="tag">Bestseller</span>
+              <button class="card__add" data-add data-name="The Classic Chip" data-price="3.5" data-cursor="hover">Add +</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" data-tilt data-cursor="hover">
+          <div class="card__art"><div class="cookie-art" style="--dough:#b9793f;--chip:#4a2c17"></div></div>
+          <div class="card__body">
+            <div class="card__row"><h3>Brown Butter speculoos</h3><span class="card__price">$3.80</span></div>
+            <p>Nutty brown butter, cinnamon, caramelised edge.</p>
+            <div class="card__foot">
+              <span class="tag tag--new">New</span>
+              <button class="card__add" data-add data-name="Brown Butter speculoos" data-price="3.8" data-cursor="hover">Add +</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" data-tilt data-cursor="hover">
+          <div class="card__art"><div class="cookie-art" style="--dough:#f0d9a8;--chip:#7a4a24"></div></div>
+          <div class="card__body">
+            <div class="card__row"><h3>White Choc &amp; Raspberry</h3><span class="card__price">$4.00</span></div>
+            <p>Tangy berries, vanilla bean, molten white choc.</p>
+            <div class="card__foot">
+              <span class="tag">Fan favourite</span>
+              <button class="card__add" data-add data-name="White Choc & Raspberry" data-price="4" data-cursor="hover">Add +</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="card" data-tilt data-cursor="hover">
+          <div class="card__art"><div class="cookie-art" style="--dough:#8a5a34;--chip:#2b170d"></div></div>
+          <div class="card__body">
+            <div class="card__row"><h3>Double Fudge Riot</h3><span class="card__price">$4.20</span></div>
+            <p>Cocoa dough, fudge core, more chocolate. Obviously.</p>
+            <div class="card__foot">
+              <span class="tag tag--hot">Rich</span>
+              <button class="card__add" data-add data-name="Double Fudge Riot" data-price="4.2" data-cursor="hover">Add +</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ PROCESS ============ -->
+    <section class="process section" id="process">
+      <div class="process__sticky">
+        <p class="section__eyebrow">How we bake</p>
+        <h2 class="section__title" data-split>Four steps. Zero shortcuts.</h2>
+        <div class="process__progress"><i id="processBar"></i></div>
+      </div>
+      <div class="process__steps">
+        <article class="step" data-step>
+          <span class="step__num">01</span>
+          <h3>Source obsessively</h3>
+          <p>Butter from one dairy, chocolate from one bean-to-bar maker, flour milled within the week. If we can't pronounce it, it doesn't go in.</p>
+        </article>
+        <article class="step" data-step>
+          <span class="step__num">02</span>
+          <h3>Rest the dough</h3>
+          <p>Every batch sleeps 24 hours in the cold. It's the difference between "nice cookie" and "wait, what is this" cookie.</p>
+        </article>
+        <article class="step" data-step>
+          <span class="step__num">03</span>
+          <h3>Bake at dawn</h3>
+          <p>Ovens on at 5am, trays rotated by hand, pulled at exactly the moment the edges turn amber. We time it to the second.</p>
+        </article>
+        <article class="step" data-step>
+          <span class="step__num">04</span>
+          <h3>Box &amp; ship warm</h3>
+          <p>Packed in compostable boxes with a little heat pad, so your first bite tastes like it just left the tray.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ BOX BUILDER ============ -->
+    <section class="box section" id="box">
+      <div class="box__builder">
+        <p class="section__eyebrow" data-fade>Build a box</p>
+        <h2 class="section__title" data-split>Pick six. We'll do the rest.</h2>
+
+        <div class="box__flavours" id="flavourList">
+          <button class="flavour" data-flavour="Classic Chip" data-color="#2f1b10" data-cursor="hover">Classic Chip</button>
+          <button class="flavour" data-flavour="Brown Butter" data-color="#7a4a24" data-cursor="hover">Brown Butter</button>
+          <button class="flavour" data-flavour="Raspberry White" data-color="#c2506a" data-cursor="hover">Raspberry White</button>
+          <button class="flavour" data-flavour="Double Fudge" data-color="#3a2418" data-cursor="hover">Double Fudge</button>
+          <button class="flavour" data-flavour="Matcha White" data-color="#6f8f4a" data-cursor="hover">Matcha White</button>
+          <button class="flavour" data-flavour="Salted Caramel" data-color="#c98a2c" data-cursor="hover">Salted Caramel</button>
+        </div>
+
+        <div class="box__tray" id="boxTray" aria-label="Your box"></div>
+
+        <div class="box__summary">
+          <p><strong id="boxCount">0</strong>/6 cookies · <strong id="boxPrice">$0.00</strong></p>
+          <button class="btn btn--primary" id="boxAdd" data-cursor="hover" disabled>Add box to cart</button>
+        </div>
+      </div>
+
+      <aside class="box__visual" data-parallax>
+        <div class="box__lid">
+          <span>Crumb &amp; Co.</span>
+          <small>contains: pure happiness</small>
+        </div>
+        <div class="box__note">Ships free<br>on boxes of 6+</div>
+      </aside>
+    </section>
+
+    <!-- ============ TESTIMONIALS ============ -->
+    <section class="quotes section" id="quotes">
+      <p class="section__eyebrow" data-fade>Kind crumbs</p>
+      <h2 class="section__title" data-split>People say nice things</h2>
+      <div class="quotes__rail" id="quoteRail">
+        <figure class="quote">
+          <blockquote>“I ordered a box 'to try'. That was eight months ago. My box order is now a weekly subscription.”</blockquote>
+          <figcaption><span class="quote__av">ML</span> Maya L. <i>· verified cookie monster</i></figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>“The brown butter one ruined every other cookie for me. Genuinely. I've stopped trying.”</blockquote>
+          <figcaption><span class="quote__av">JR</span> Jordan R. <i>· Melbourne</i></figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>“Arrived still slightly warm. My flatmate thought I'd baked them. I did not correct her.”</blockquote>
+          <figcaption><span class="quote__av">SK</span> Sam K. <i>· London</i></figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>“Sent a box to my mum for her birthday. She has mentioned it in every phone call since.”</blockquote>
+          <figcaption><span class="quote__av">AT</span> Aisha T. <i>· Toronto</i></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="cta section">
+      <div class="cta__inner">
+        <h2 class="cta__title" data-split>Get $5 off your first box</h2>
+        <p data-fade>Join the crumb club for early access to seasonal batches. No spam, just cookies.</p>
+        <form class="cta__form" id="ctaForm" novalidate>
+          <input type="email" placeholder="you@hungry.com" required aria-label="Email address" />
+          <button class="btn btn--dark" type="submit" data-cursor="hover">Send me cookies</button>
+        </form>
+        <span class="cta__msg" id="ctaMsg"></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="nav__logo-dot"></span> Crumb &amp; Co.
+        <p>14 Baker Lane, open 7am–sold out.<br>Baked fresh, never frozen.</p>
+      </div>
+      <div class="footer__cols">
+        <div><h4>Shop</h4><a href="#shop">Bestsellers</a><a href="#box">Build a box</a><a href="#shop">Gift cards</a></div>
+        <div><h4>Bakery</h4><a href="#story">Our story</a><a href="#process">How we bake</a><a href="#quotes">Reviews</a></div>
+        <div><h4>Say hi</h4><a href="#">Instagram</a><a href="#">TikTok</a><a href="#">hello@crumb.co</a></div>
+      </div>
+    </div>
+    <div class="footer__word" aria-hidden="true">CRUMB&amp;CO</div>
+    <div class="footer__bottom">
+      <span>© 2026 Crumb &amp; Co. Baked with too much butter.</span>
+      <span>Made with 🍪 &amp; WebGL</span>
+    </div>
+  </footer>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast"><span>🍪</span><p id="toastText">Added to box</p></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
