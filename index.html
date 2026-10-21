@@ -38,6 +38,7 @@
         <a href="#box" data-cursor="hover">Build a box</a>
       </nav>
       <div class="nav__actions">
+        <button class="nav__account" id="accountBtn" type="button" data-cursor="hover">Sign in</button>
         <button class="nav__cart" id="cartBtn" data-cursor="hover" aria-label="Cart">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           <span class="nav__cart-count" id="cartCount">0</span>
@@ -158,7 +159,8 @@
         <p class="section__note" data-fade>Every box is baked the morning it ships.<br>Pick your poison ↓</p>
       </div>
 
-      <div class="shop__grid" id="shopGrid">
+      <p class="shop__message" id="shopMessage" role="status" aria-live="polite">Loading fresh cookies…</p>
+      <div class="shop__grid" id="shopGrid" aria-busy="true">
         <article class="card" data-tilt data-cursor="hover">
           <div class="card__art">
             <img src="/images/shop-classic-chip.webp" alt="Freshly baked chocolate chip cookies" width="720" height="480" loading="lazy" decoding="async" />
@@ -390,6 +392,38 @@
       <span>Made with 🍪 &amp; WebGL</span>
     </div>
   </footer>
+
+  <dialog class="commerce-dialog" id="commerceDialog" aria-labelledby="commerceTitle">
+    <div class="commerce-dialog__head">
+      <div>
+        <p class="section__eyebrow">Crumb &amp; Co.</p>
+        <h2 class="section__title" id="commerceTitle">Your account</h2>
+      </div>
+      <button class="commerce-dialog__close" id="commerceClose" type="button" aria-label="Close">×</button>
+    </div>
+    <p class="commerce-dialog__message" id="commerceMessage" role="status" aria-live="polite"></p>
+    <section id="authPanel" class="commerce-panel">
+      <form id="authForm" class="commerce-form">
+        <label id="nameField" hidden>Name<input name="name" autocomplete="name" maxlength="100" /></label>
+        <label>Email<input name="email" type="email" autocomplete="email" required maxlength="254" /></label>
+        <label>Password<input name="password" type="password" autocomplete="current-password" required minlength="12" maxlength="72" /></label>
+        <button class="btn btn--primary" id="authSubmit" type="submit">Sign in</button>
+      </form>
+      <button class="commerce-link" id="authModeToggle" type="button">Create an account</button>
+    </section>
+    <section id="cartPanel" class="commerce-panel" hidden>
+      <div class="commerce-tabs">
+        <button type="button" class="commerce-link is-active" data-commerce-tab="cart">Cart</button>
+        <button type="button" class="commerce-link" data-commerce-tab="orders">Order history</button>
+        <button type="button" class="commerce-link" id="signOutBtn">Sign out</button>
+      </div>
+      <div id="cartContents"></div>
+      <p class="commerce-total" id="cartTotal"></p>
+      <p class="commerce-note">Orders are submitted as pending. No payment is collected by this demo.</p>
+      <button class="btn btn--primary" id="checkoutBtn" type="button">Place order</button>
+      <div id="orderContents" hidden></div>
+    </section>
+  </dialog>
 
   <!-- ============ TOAST ============ -->
   <div class="toast" id="toast"><span>🍪</span><p id="toastText">Added to box</p></div>

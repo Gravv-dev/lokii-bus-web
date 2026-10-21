@@ -1,96 +1,167 @@
 # Crumb & Co.
 
-A small-batch cookie bakery landing page built with Next.js. The site includes a
-product shop, a six-cookie box builder, a photo gallery, and animated visual
-effects.
+A small-batch cookie storefront built with Next.js and a Go/Gin API backed by
+PostgreSQL. The original storefront design, animations, local images, and
+six-cookie visual builder are preserved.
 
 ## Requirements
 
-- Node.js 20.9 or later
-- npm
+- Node.js 20.9 or later and npm
+- Go 1.25 or later (for running the API without Docker)
+- Docker Compose (for the included PostgreSQL and API services)
 
-## Getting started
+## Start locally
 
-Install dependencies:
+1. Copy `.env.example` to `.env` and change the local database password. The
+   example values are for local development only.
+2. Start PostgreSQL and the API:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   The API listens at `http://localhost:8080`, and PostgreSQL is only reachable
+   on the private Compose network. The `postgres_data` volume is persistent.
+   Migrations run automatically at API startup and are recorded in
+   `schema_migrations`; they do not drop or reset existing data.
+3. In another terminal, install and run the storefront:
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000). Set
+   `NEXT_PUBLIC_API_BASE_URL` in `.env` when the API is hosted elsewhere.
+
+For a Go-only API run, set `DATABASE_URL`, `CORS_ALLOWED_ORIGINS`, and the
+optional cookie/admin environment variables for a PostgreSQL instance reachable
+from the host (for example, use `localhost` as the database host), then:
 
 ```bash
-npm install
+cd backend
+go run ./cmd/api
 ```
 
-Run the local development server:
+### Run with locally installed PostgreSQL (no Docker)
+
+PostgreSQL can run directly on your computer; Docker is optional. Check that
+the service is accepting connections:
+
+```bash
+pg_isready -h 127.0.0.1 -p 5432
+```
+
+If it is stopped on a system using PostgreSQL clusters, start the installed
+cluster with `sudo pg_ctlcluster 16 main start` (use your installed version in
+place of `16`). Do not delete or reset the cluster.
+
+Create a dedicated development login and database only if those names are not
+already in use. First inspect existing roles and databases:
+
+```bash
+sudo -u postgres psql -c '\du'
+sudo -u postgres psql -l
+```
+
+If `lokii_app` and `lokii_cookies_dev` are unused, create them:
+
+```bash
+sudo -u postgres psql
+```
+
+At the `psql` prompt:
+
+```sql
+CREATE ROLE lokii_app LOGIN;
+\password lokii_app
+CREATE DATABASE lokii_cookies_dev OWNER lokii_app;
+\q
+```
+
+Choose a local password at the `\password` prompts; do not paste it into chat
+or commit it. Copy `.env.local.example` to `.env.local` and put that same
+password in its `DATABASE_URL`. In one terminal, run the API with those values:
+
+```bash
+set -a
+source .env.local
+set +a
+cd backend
+go run ./cmd/api
+```
+
+In another terminal, start the website if it is not already running:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Check the API and database connection:
 
-## Available commands
+```bash
+curl -i http://localhost:8080/health
+```
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the Next.js development server |
-| `npm run build` | Create an optimized production build |
-| `npm start` | Serve the production build (run `npm run build` first) |
+An HTTP `200` response with `{"status":"ok"}` means the API can reach
+PostgreSQL. Check `pg_isready` separately to confirm the PostgreSQL server
+accepts connections. `GET /api/v1/products` returns an empty list until an
+administrator adds real catalog products.
+
+## First administrator and catalog
+
+Set both `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` before the
+first API startup to create an administrator account. The password must be
+12–72 bytes. Bootstrap does not change the role or password of an existing
+account. Remove these variables after the initial account is created.
+
+Products and categories are not seeded with fake data. Create them through the
+protected admin API (documented in [backend/API.md](./backend/API.md)); public
+registration can only create customer accounts. The storefront displays an
+explicit unavailable/empty state if the API cannot supply products.
+
+## Backend security and behavior
+
+- Passwords use bcrypt; login issues a random opaque session cookie, with only
+  its SHA-256 hash stored in PostgreSQL. Sessions expire after 14 days.
+- Mutating authenticated requests require the session-bound CSRF cookie and
+  matching `X-CSRF-Token` header.
+- CORS allows only the explicitly configured origins. Set `COOKIE_SECURE=true`
+  behind HTTPS in production.
+- Authentication is rate-limited per client IP. SQL uses parameterized
+  queries, and request JSON is size-limited and rejects unknown fields.
+- Product prices and inventory come from PostgreSQL. Checkout locks inventory
+  and creates an order/items and inventory decrement in one transaction.
+- Orders are pending records only; payment processing, shipping addresses,
+  refunds, and email delivery are not implemented.
+- Custom six-cookie box selection remains a visual builder and is not accepted
+  as a checkout item yet. Standard catalog products use the real cart/order API.
+
+## Validation
+
+```bash
+cd backend
+find cmd internal -type f -name '*.go' -exec gofmt -w {} +
+go vet ./...
+go test ./...
+go build -o /tmp/lokii-api ./cmd/api
+```
+
+Run the web build with `npm run build`. Migration verification needs a reachable
+PostgreSQL server; the API applies pending migrations on startup and reports
+database connectivity through `GET /health`. Docker is not required to run Go
+tests, but it is required for the provided Compose setup.
 
 ## Project structure
 
 ```text
-app/
-  globals.css       Imports the site's global stylesheet
-  interactions.js   Loads browser-only page interactions
-  layout.js         Root layout, fonts, and page metadata
-  page.js           Next.js home route
-css/
-  style.css         Layout, components, responsive styles, and animations
-js/
-  main.js           GSAP animations, navigation, cart, and box builder
-  cookie3d.js       Three.js cookie scene in the hero
-public/
-  images/           Local optimized WebP images used by the site
-index.html          Source markup for the landing page
+app/                 Next.js routes and client bootstrap
+backend/cmd/api/     Go service entry point
+backend/internal/    Configuration, database, HTTP API, and repository
+backend/internal/database/migrations/
+js/api.js            Centralized browser API client
+js/main.js           Storefront interactions and API integration
+index.html           Server-rendered storefront markup
+css/style.css        Storefront and commerce dialog styling
+public/images/       Local visual assets
 ```
-
-The home route reads the `<body>` markup from `index.html` and renders it on the
-server. Keep page content in that file; `app/page.js` removes embedded script
-tags because Next.js loads the client interactions from `app/interactions.js`.
-Global document metadata and font links are configured in `app/layout.js`.
-
-## Main features
-
-- Responsive navigation with in-page links.
-- Shop cards with product images and a demo cart counter.
-- Box builder with six photo-filled tray slots. Choose flavours to replace the
-  previews, then add the completed box to the cart.
-- Kitchen photo gallery.
-- GSAP scroll and entrance animations, Lenis smooth scrolling, and a Three.js
-  hero scene. The 3D scene pauses when it is off-screen or the tab is hidden.
-- Reduced-motion support for visitors who prefer less animation.
-
-The cart and newsletter interactions are client-side demos; they are not
-connected to a payment provider, subscription service, or backend.
-
-## Images
-
-Place site images in `public/images/` and reference them with a root-relative URL,
-for example `/images/cookies-story.webp`. Prefer compressed WebP assets, provide
-meaningful `alt` text and intrinsic `width` and `height`, and use lazy loading
-for images below the fold.
-
-Shop product images are mapped in the `data-image` attributes on the flavour
-buttons in `index.html`. The six tray preview images are listed in
-`previewImages` in `js/main.js`; keep these filenames in sync with files in
-`public/images/`.
-
-## Production
-
-Build and run the production server:
-
-```bash
-npm run build
-npm start
-```
-
-The application can be deployed to a Node.js host that supports Next.js.
-Generated `.next/` output and installed `node_modules/` dependencies should not
-be committed.

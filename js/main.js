@@ -2,6 +2,7 @@
    main.js — smooth scroll, animations, interactions
    ========================================================= */
 import { initCookie3D } from "./cookie3d.js";
+import { APIError, storefrontAPI } from "./api.js";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
@@ -288,23 +289,350 @@ function showToast(msg) {
 
 /* ---------------- cart ---------------- */
 const cartCount = document.getElementById("cartCount");
-let count = 0;
-function addToCart(n = 1) {
-  count += n;
-  gsap.fromTo(cartCount, { scale: 1 }, { scale: 1.35, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" });
+const shopGrid = document.getElementById("shopGrid");
+const shopMessage = document.getElementById("shopMessage");
+const commerceDialog = document.getElementById("commerceDialog");
+const commerceMessage = document.getElementById("commerceMessage");
+const authPanel = document.getElementById("authPanel");
+const cartPanel = document.getElementById("cartPanel");
+const authForm = document.getElementById("authForm");
+const nameField = document.getElementById("nameField");
+const authSubmit = document.getElementById("authSubmit");
+const authModeToggle = document.getElementById("authModeToggle");
+const cartContents = document.getElementById("cartContents");
+const cartTotal = document.getElementById("cartTotal");
+const orderContents = document.getElementById("orderContents");
+const checkoutBtn = document.getElementById("checkoutBtn");
+const accountBtn = document.getElementById("accountBtn");
+let currentUser = null;
+let registering = false;
+
+function updateCartCount(count) {
   cartCount.textContent = count;
+  gsap.fromTo(cartCount, { scale: 1 }, { scale: 1.25, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" });
 }
-document.querySelectorAll("[data-add]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    addToCart();
-    btn.classList.add("is-added");
-    btn.textContent = "Added ✓";
-    showToast(`${btn.dataset.name} added — $${(+btn.dataset.price).toFixed(2)}`);
-    setTimeout(() => {
-      btn.classList.remove("is-added");
-      btn.textContent = "Add +";
-    }, 1500);
+
+function showCommerceMessage(message = "") {
+  commerceMessage.textContent = message;
+}
+
+function showAuth(message = "") {
+  authPanel.hidden = false;
+  cartPanel.hidden = true;
+  showCommerceMessage(message);
+  if (!commerceDialog.open) commerceDialog.showModal();
+}
+
+function showCartPanel() {
+  authPanel.hidden = true;
+  cartPanel.hidden = false;
+  showCommerceMessage("");
+  if (!commerceDialog.open) commerceDialog.showModal();
+  refreshCart().catch((error) => showCommerceMessage(error.message));
+}
+
+function setUser(user) {
+  currentUser = user;
+  accountBtn.textContent = user ? user.name.split(/\s+/)[0] : "Sign in";
+  accountBtn.setAttribute("aria-label", user ? `Signed in as ${user.name}` : "Sign in");
+}
+
+function money(value) {
+  return `$${Number(value).toFixed(2)}`;
+}
+
+function showProductError(message) {
+  shopGrid.replaceChildren();
+  shopGrid.setAttribute("aria-busy", "false");
+  shopMessage.textContent = message;
+}
+
+function renderProducts(products) {
+  shopGrid.replaceChildren();
+  if (products.length === 0) {
+    showProductError("No cookies are available right now. Please check back soon.");
+    return;
+  }
+  for (const product of products) {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.dataset.tilt = "";
+    card.dataset.cursor = "hover";
+
+    const art = document.createElement("div");
+    art.className = "card__art";
+    const image = document.createElement("img");
+    image.src = product.image_url || "/images/shop-classic-chip.webp";
+    image.alt = product.name;
+    image.width = 720;
+    image.height = 480;
+    image.loading = "lazy";
+    image.decoding = "async";
+    art.append(image);
+
+    const body = document.createElement("div");
+    body.className = "card__body";
+    const row = document.createElement("div");
+    row.className = "card__row";
+    const title = document.createElement("h3");
+    title.textContent = product.name;
+    const price = document.createElement("span");
+    price.className = "card__price";
+    price.textContent = money(product.price);
+    row.append(title, price);
+
+    const description = document.createElement("p");
+    description.textContent = product.description;
+    const foot = document.createElement("div");
+    foot.className = "card__foot";
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = product.inventory > 0 ? "Fresh from the oven" : "Sold out";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "card__add";
+    button.dataset.add = "";
+    button.dataset.productId = product.id;
+    button.dataset.name = product.name;
+    button.textContent = product.inventory > 0 ? "Add +" : "Sold out";
+    button.disabled = product.inventory < 1;
+    foot.append(tag, button);
+    body.append(row, description, foot);
+    card.append(art, body);
+    shopGrid.append(card);
+  }
+  shopGrid.setAttribute("aria-busy", "false");
+  shopMessage.textContent = "";
+}
+
+async function loadProducts() {
+  shopGrid.setAttribute("aria-busy", "true");
+  shopGrid.replaceChildren();
+  try {
+    const result = await storefrontAPI.products();
+    renderProducts(result.data || []);
+  } catch (error) {
+    showProductError(error.message);
+  }
+}
+
+async function refreshCart() {
+  const cart = await storefrontAPI.cart();
+  updateCartCount(cart.items.reduce((total, item) => total + item.quantity, 0));
+  cartContents.replaceChildren();
+  orderContents.hidden = true;
+  cartContents.hidden = false;
+  cartTotal.hidden = false;
+  checkoutBtn.hidden = false;
+  if (cart.items.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "commerce-empty";
+    empty.textContent = "Your cart is empty. Find something delicious in the shop.";
+    cartContents.append(empty);
+  }
+  for (const item of cart.items) {
+    const row = document.createElement("div");
+    row.className = "commerce-item";
+    const details = document.createElement("div");
+    details.className = "commerce-item__details";
+    const name = document.createElement("p");
+    name.className = "commerce-item__name";
+    name.textContent = item.name;
+    const price = document.createElement("p");
+    price.className = "commerce-item__price";
+    price.textContent = `${money(item.unit_price)} each · ${money(item.subtotal)}`;
+    details.append(name, price);
+
+    const actions = document.createElement("div");
+    actions.className = "commerce-item__actions";
+    const decrease = document.createElement("button");
+    decrease.type = "button";
+    decrease.textContent = "−";
+    decrease.setAttribute("aria-label", `Remove one ${item.name}`);
+    decrease.disabled = item.quantity <= 1;
+    decrease.addEventListener("click", () => changeCartItem(item.id, item.quantity - 1));
+    const quantity = document.createElement("span");
+    quantity.textContent = item.quantity;
+    const increase = document.createElement("button");
+    increase.type = "button";
+    increase.textContent = "+";
+    increase.setAttribute("aria-label", `Add one ${item.name}`);
+    increase.addEventListener("click", () => changeCartItem(item.id, item.quantity + 1));
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "commerce-item__remove";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => removeCartItem(item.id));
+    actions.append(decrease, quantity, increase, remove);
+    row.append(details, actions);
+    cartContents.append(row);
+  }
+  cartTotal.textContent = `Total: ${money(cart.total)}`;
+  checkoutBtn.disabled = cart.items.length === 0;
+}
+
+async function changeCartItem(itemID, quantity) {
+  try {
+    await storefrontAPI.updateCartItem(itemID, quantity);
+    await refreshCart();
+  } catch (error) {
+    showCommerceMessage(error.message);
+  }
+}
+
+async function removeCartItem(itemID) {
+  try {
+    await storefrontAPI.deleteCartItem(itemID);
+    await refreshCart();
+  } catch (error) {
+    showCommerceMessage(error.message);
+  }
+}
+
+async function renderOrders() {
+  try {
+    const orders = await storefrontAPI.orders();
+    orderContents.replaceChildren();
+    orderContents.hidden = false;
+    cartContents.hidden = true;
+    cartTotal.hidden = true;
+    checkoutBtn.hidden = true;
+    if (orders.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "commerce-empty";
+      empty.textContent = "You haven't placed an order yet.";
+      orderContents.append(empty);
+      return;
+    }
+    for (const order of orders) {
+      const row = document.createElement("div");
+      row.className = "commerce-order";
+      const summary = document.createElement("span");
+      summary.textContent = `Order ${order.id.slice(0, 8)} · ${order.status}`;
+      const total = document.createElement("strong");
+      total.textContent = money(order.total);
+      row.append(summary, total);
+      orderContents.append(row);
+    }
+  } catch (error) {
+    showCommerceMessage(error.message);
+  }
+}
+
+document.getElementById("commerceClose").addEventListener("click", () => commerceDialog.close());
+accountBtn.addEventListener("click", () => currentUser ? showCartPanel() : showAuth());
+document.getElementById("cartBtn").addEventListener("click", () => {
+  if (!currentUser) {
+    showAuth("Sign in or create an account to view your cart.");
+    return;
+  }
+  showCartPanel();
+});
+authModeToggle.addEventListener("click", () => {
+  registering = !registering;
+  nameField.hidden = !registering;
+  authForm.elements.password.autocomplete = registering ? "new-password" : "current-password";
+  authForm.elements.name.required = registering;
+  authSubmit.textContent = registering ? "Create account" : "Sign in";
+  authModeToggle.textContent = registering ? "I already have an account" : "Create an account";
+  document.getElementById("commerceTitle").textContent = registering ? "Join the crumb club" : "Your account";
+  showCommerceMessage("");
+});
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  authSubmit.disabled = true;
+  const formData = new FormData(authForm);
+  try {
+    const user = registering
+      ? await storefrontAPI.register(formData.get("name").trim(), formData.get("email").trim(), formData.get("password"))
+      : await storefrontAPI.login(formData.get("email").trim(), formData.get("password"));
+    setUser(user);
+    authForm.reset();
+    registering = false;
+    nameField.hidden = true;
+    authForm.elements.name.required = false;
+    authModeToggle.textContent = "Create an account";
+    document.getElementById("commerceTitle").textContent = "Your cart";
+    await refreshCart();
+    cartPanel.hidden = false;
+    authPanel.hidden = true;
+    showCommerceMessage("");
+  } catch (error) {
+    showCommerceMessage(error.message);
+  } finally {
+    authSubmit.disabled = false;
+  }
+});
+document.querySelectorAll("[data-commerce-tab]").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll("[data-commerce-tab]").forEach((button) => button.classList.remove("is-active"));
+    tab.classList.add("is-active");
+    if (tab.dataset.commerceTab === "orders") renderOrders();
+    else refreshCart().catch((error) => showCommerceMessage(error.message));
   });
+});
+document.getElementById("signOutBtn").addEventListener("click", async () => {
+  try {
+    await storefrontAPI.logout();
+    setUser(null);
+    updateCartCount(0);
+    commerceDialog.close();
+  } catch (error) {
+    showCommerceMessage(error.message);
+  }
+});
+checkoutBtn.addEventListener("click", async () => {
+  checkoutBtn.disabled = true;
+  try {
+    const order = await storefrontAPI.createOrder();
+    updateCartCount(0);
+    await refreshCart();
+    showCommerceMessage(`Order ${order.id.slice(0, 8)} was placed and is ${order.status}.`);
+  } catch (error) {
+    showCommerceMessage(error.message);
+  } finally {
+    checkoutBtn.disabled = false;
+  }
+});
+shopGrid.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-add]");
+  if (!button || button.disabled) return;
+  if (!button.dataset.productId) {
+    showToast("This product is not available from the store service.");
+    return;
+  }
+  if (!currentUser) {
+    showAuth("Sign in or create an account to add cookies to your cart.");
+    return;
+  }
+  button.disabled = true;
+  try {
+    const cart = await storefrontAPI.addCartItem(button.dataset.productId);
+    updateCartCount(cart.items.reduce((total, item) => total + item.quantity, 0));
+    button.classList.add("is-added");
+    button.textContent = "Added ✓";
+    showToast(`${button.dataset.name} added to your cart.`);
+    window.setTimeout(() => {
+      button.classList.remove("is-added");
+      button.textContent = "Add +";
+      button.disabled = false;
+    }, 1500);
+  } catch (error) {
+    showToast(error.message);
+    button.disabled = false;
+  }
+});
+
+loadProducts();
+storefrontAPI.me().then((user) => {
+  setUser(user);
+  return storefrontAPI.cart();
+}).then((cart) => {
+  updateCartCount(cart.items.reduce((total, item) => total + item.quantity, 0));
+}).catch((error) => {
+  if (!(error instanceof APIError) || error.status !== 401) {
+    console.error("Could not restore the customer session:", error);
+  }
 });
 
 /* ---------------- box builder ---------------- */
@@ -376,12 +704,7 @@ document.querySelectorAll(".flavour").forEach((fl) => {
 
 boxAdd.addEventListener("click", () => {
   if (picked.length < MAX) return;
-  addToCart(MAX);
-  showToast(`Box of 6 added — $${(MAX * COOKIE_PRICE).toFixed(2)} 🎉`);
-  picked = [];
-  document.querySelectorAll(".flavour").forEach((f) => f.classList.remove("is-active"));
-  renderBox();
-  gsap.fromTo(tray, { scale: 0.97 }, { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.6)" });
+  showToast("Custom six-cookie boxes are not available in online checkout yet.");
 });
 renderBox();
 
