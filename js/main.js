@@ -2,15 +2,25 @@
    main.js — smooth scroll, animations, interactions
    ========================================================= */
 import { initCookie3D } from "./cookie3d.js";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lenis from "lenis";
+
+let initialized = false;
+
+export function initPage() {
+if (initialized) return;
+initialized = true;
 
 const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isTouch = window.matchMedia("(hover: none)").matches;
+let introStarted = false;
 
 gsap.registerPlugin(ScrollTrigger);
 
 /* ---------------- smooth scrolling ---------------- */
 let lenis = null;
-if (!prefersReduced && typeof Lenis !== "undefined") {
+if (!prefersReduced) {
   lenis = new Lenis({ duration: 1.1, smoothWheel: true, lerp: 0.09 });
   lenis.on("scroll", ScrollTrigger.update);
   gsap.ticker.add((time) => lenis.raf(time * 1000));
@@ -34,14 +44,23 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
 /* ---------------- preloader ---------------- */
 const preloader = document.getElementById("preloader");
 function hidePreloader() {
-  const tl = gsap.timeline();
+  if (introStarted) return;
+  introStarted = true;
+  if (!preloader || preloader.style.display === "none") {
+    introHero();
+    return;
+  }
+  const tl = gsap.timeline({ onComplete: introHero });
   tl.to(".preloader__inner", { y: -20, opacity: 0, duration: 0.5, ease: "power2.in" })
     .to(preloader, { yPercent: -100, duration: 0.85, ease: "power4.inOut" }, "-=0.1")
-    .set(preloader, { display: "none" })
-    .add(introHero, "-=0.45");
+    .set(preloader, { display: "none" });
 }
-window.addEventListener("load", () => setTimeout(hidePreloader, 550));
-setTimeout(() => { if (preloader.style.display !== "none") hidePreloader(); }, 4000);
+if (document.readyState === "complete") {
+  setTimeout(hidePreloader, 550);
+} else {
+  window.addEventListener("load", () => setTimeout(hidePreloader, 550), { once: true });
+}
+setTimeout(hidePreloader, 4000);
 
 /* ---------------- hero intro ---------------- */
 function introHero() {
@@ -106,25 +125,32 @@ gsap.to(".hero__content", {
   scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true },
 });
 
-// marquee — base drift + scroll velocity
+// Animate the marquee only while it is visible.
 const track = document.getElementById("marqueeTrack");
 let marqueeX = 0;
 const marqueeSpeed = { v: 0.6 };
-gsap.ticker.add(() => {
-  if (!track) return;
-  marqueeX -= marqueeSpeed.v;
-  const half = track.scrollWidth / 2;
-  if (Math.abs(marqueeX) >= half) marqueeX = 0;
-  track.style.transform = `translate3d(${marqueeX}px,0,0)`;
-});
-ScrollTrigger.create({
-  trigger: ".marquee",
-  start: "top bottom",
-  end: "bottom top",
-  onUpdate: (self) => {
-    gsap.to(marqueeSpeed, { v: 0.6 + Math.abs(self.getVelocity()) / 900, duration: 0.4, overwrite: true });
-  },
-});
+if (track && !prefersReduced) {
+  let half = track.scrollWidth / 2;
+  const resizeMarquee = () => { half = track.scrollWidth / 2; };
+  const animateMarquee = () => {
+    marqueeX -= marqueeSpeed.v;
+    if (Math.abs(marqueeX) >= half) marqueeX = 0;
+    track.style.transform = `translate3d(${marqueeX}px,0,0)`;
+  };
+  window.addEventListener("resize", resizeMarquee, { passive: true });
+  ScrollTrigger.create({
+    trigger: ".marquee",
+    start: "top bottom",
+    end: "bottom top",
+    onEnter: () => gsap.ticker.add(animateMarquee),
+    onLeave: () => gsap.ticker.remove(animateMarquee),
+    onEnterBack: () => gsap.ticker.add(animateMarquee),
+    onLeaveBack: () => gsap.ticker.remove(animateMarquee),
+    onUpdate: (self) => {
+      gsap.to(marqueeSpeed, { v: 0.6 + Math.abs(self.getVelocity()) / 900, duration: 0.4, overwrite: true });
+    },
+  });
+}
 
 // parallax blocks
 gsap.utils.toArray("[data-parallax]").forEach((el) => {
@@ -177,15 +203,18 @@ if (rail) {
   const railTween = gsap.to(rail, {
     x: () => -(rail.scrollWidth - window.innerWidth + 40),
     duration: 26, ease: "none", repeat: -1,
+    paused: true,
     modifiers: { x: (x) => `${parseFloat(x) % (rail.scrollWidth - window.innerWidth + 40 || 1)}px` },
   });
-  ScrollTrigger.create({
-    trigger: ".quotes", start: "top bottom", end: "bottom top",
-    onEnter: () => railTween.play(),
-    onLeave: () => railTween.pause(),
-    onEnterBack: () => railTween.play(),
-    onLeaveBack: () => railTween.pause(),
-  });
+  if (!prefersReduced) {
+    ScrollTrigger.create({
+      trigger: ".quotes", start: "top bottom", end: "bottom top",
+      onEnter: () => railTween.play(),
+      onLeave: () => railTween.pause(),
+      onEnterBack: () => railTween.play(),
+      onLeaveBack: () => railTween.pause(),
+    });
+  }
   // drag
   let down = false, startX = 0, startTx = 0;
   const getTx = () => gsap.getProperty(rail, "x");
@@ -200,7 +229,7 @@ if (rail) {
   window.addEventListener("pointerup", () => {
     if (!down) return;
     down = false; rail.classList.remove("is-drag");
-    gsap.delayedCall(2, () => railTween.play());
+    if (!prefersReduced) gsap.delayedCall(2, () => railTween.play());
   });
 }
 
@@ -285,6 +314,14 @@ const boxPrice = document.getElementById("boxPrice");
 const boxAdd = document.getElementById("boxAdd");
 const COOKIE_PRICE = 3.9;
 const MAX = 6;
+const previewImages = [
+  "shop-classic-chip.webp",
+  "shop-brown-butter.webp",
+  "shop-raspberry-white.webp",
+  "shop-double-fudge.webp",
+  "cookie-flavour-trio.webp",
+  "cookies-and-milk.webp",
+];
 let picked = [];
 
 for (let i = 0; i < MAX; i++) {
@@ -300,12 +337,16 @@ function renderBox() {
     const item = picked[i];
     if (item) {
       slot.classList.add("is-filled");
-      slot.style.background = `radial-gradient(circle at 34% 30%, color-mix(in srgb, ${item.color} 78%, #ffffff), ${item.color} 78%)`;
+      slot.classList.remove("is-preview");
+      slot.style.backgroundImage = `url("/images/${item.image}")`;
       slot.title = item.name;
+      slot.setAttribute("aria-label", `Cookie ${i + 1}: ${item.name}`);
     } else {
       slot.classList.remove("is-filled");
-      slot.style.background = "transparent";
+      slot.classList.add("is-preview");
+      slot.style.backgroundImage = `linear-gradient(rgba(255, 246, 234, 0.2), rgba(255, 246, 234, 0.2)), url("/images/${previewImages[i]}")`;
       slot.title = "";
+      slot.setAttribute("aria-label", `Empty cookie slot ${i + 1}, preview image`);
     }
   });
   boxCount.textContent = picked.length;
@@ -320,7 +361,11 @@ document.querySelectorAll(".flavour").forEach((fl) => {
       showToast("Box is full! Add it or start over.");
       return;
     }
-    const item = { name: fl.dataset.flavour, color: fl.dataset.color };
+    const item = {
+      name: fl.dataset.flavour,
+      color: fl.dataset.color,
+      image: fl.dataset.image,
+    };
     picked.push(item);
     fl.classList.add("is-active");
     const slot = slots[picked.length - 1];
@@ -360,3 +405,4 @@ form.addEventListener("submit", (e) => {
 
 /* ---------------- refresh on load ---------------- */
 window.addEventListener("load", () => ScrollTrigger.refresh());
+}

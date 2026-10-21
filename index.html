@@ -114,7 +114,15 @@
     <section class="story section" id="story">
       <div class="story__media" data-parallax>
         <div class="story__photo story__photo--main">
-          <div class="cookie-art cookie-art--lg" style="--dough:#e0a45c;--chip:#3b2314"></div>
+          <img
+            class="story__image"
+            src="/images/cookies-story.webp"
+            alt="Freshly baked chocolate chip cookies on a baking tray"
+            width="768"
+            height="1155"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         <div class="story__photo story__photo--float">
           <div class="cookie-art" style="--dough:#c98a4b;--chip:#5b3a22"></div>
@@ -152,7 +160,9 @@
 
       <div class="shop__grid" id="shopGrid">
         <article class="card" data-tilt data-cursor="hover">
-          <div class="card__art"><div class="cookie-art" style="--dough:#e3ac66;--chip:#2f1b10"></div></div>
+          <div class="card__art">
+            <img src="/images/shop-classic-chip.webp" alt="Freshly baked chocolate chip cookies" width="720" height="480" loading="lazy" decoding="async" />
+          </div>
           <div class="card__body">
             <div class="card__row"><h3>The Classic Chip</h3><span class="card__price">$3.50</span></div>
             <p>Dark 70% chunks, flaky sea salt, crispy rim.</p>
@@ -164,7 +174,9 @@
         </article>
 
         <article class="card" data-tilt data-cursor="hover">
-          <div class="card__art"><div class="cookie-art" style="--dough:#b9793f;--chip:#4a2c17"></div></div>
+          <div class="card__art">
+            <img src="/images/shop-brown-butter.webp" alt="Brown butter cookies on a baking tray" width="333" height="500" loading="lazy" decoding="async" />
+          </div>
           <div class="card__body">
             <div class="card__row"><h3>Brown Butter speculoos</h3><span class="card__price">$3.80</span></div>
             <p>Nutty brown butter, cinnamon, caramelised edge.</p>
@@ -176,7 +188,9 @@
         </article>
 
         <article class="card" data-tilt data-cursor="hover">
-          <div class="card__art"><div class="cookie-art" style="--dough:#f0d9a8;--chip:#7a4a24"></div></div>
+          <div class="card__art">
+            <img src="/images/shop-raspberry-white.webp" alt="White chocolate cookies on a plate" width="720" height="480" loading="lazy" decoding="async" />
+          </div>
           <div class="card__body">
             <div class="card__row"><h3>White Choc &amp; Raspberry</h3><span class="card__price">$4.00</span></div>
             <p>Tangy berries, vanilla bean, molten white choc.</p>
@@ -188,7 +202,9 @@
         </article>
 
         <article class="card" data-tilt data-cursor="hover">
-          <div class="card__art"><div class="cookie-art" style="--dough:#8a5a34;--chip:#2b170d"></div></div>
+          <div class="card__art">
+            <img src="/images/shop-double-fudge.webp" alt="Rich chocolate fudge cookies" width="720" height="480" loading="lazy" decoding="async" />
+          </div>
           <div class="card__body">
             <div class="card__row"><h3>Double Fudge Riot</h3><span class="card__price">$4.20</span></div>
             <p>Cocoa dough, fudge core, more chocolate. Obviously.</p>
@@ -198,6 +214,49 @@
             </div>
           </div>
         </article>
+      </div>
+    </section>
+
+    <!-- ============ FROM THE KITCHEN ============ -->
+    <section class="kitchen-gallery section" id="gallery">
+      <div class="section__head">
+        <div>
+          <p class="section__eyebrow" data-fade>Fresh from our kitchen</p>
+          <h2 class="section__title" data-split>A closer look at the good stuff.</h2>
+        </div>
+        <p class="section__note" data-fade>Made by hand, baked with love, and best enjoyed warm.</p>
+      </div>
+      <div class="kitchen-gallery__grid">
+        <figure class="kitchen-gallery__item">
+          <img src="/images/freshly-baked-cookies.webp" alt="Freshly baked cookies cooling on a tray" width="1600" height="1067" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/chocolate-chip-stack.webp" alt="A stack of chocolate chip cookies" width="1600" height="1143" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookie-flavour-trio.webp" alt="Three cookies with different toppings" width="1600" height="900" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookies-on-plate.webp" alt="Golden cookies arranged on a plate" width="1600" height="1067" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookie-assortment.webp" alt="An assorted box of freshly baked cookies" width="720" height="1227" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookie-gift-box.webp" alt="A gift box filled with assorted cookies" width="736" height="981" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookies-and-milk.webp" alt="Chocolate chip cookies served with milk" width="1067" height="1600" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/chocolate-chip-cookies.webp" alt="Chocolate chip cookies with chocolate scattered around them" width="900" height="1600" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookies-on-tray.webp" alt="Fresh cookies gathered in a baking tray" width="1067" height="1600" loading="lazy" decoding="async" />
+        </figure>
+        <figure class="kitchen-gallery__item">
+          <img src="/images/cookie-closeup.webp" alt="Close-up of freshly baked chocolate chip cookies" width="1600" height="1067" loading="lazy" decoding="async" />
+        </figure>
       </div>
     </section>
 
@@ -239,12 +298,12 @@
         <h2 class="section__title" data-split>Pick six. We'll do the rest.</h2>
 
         <div class="box__flavours" id="flavourList">
-          <button class="flavour" data-flavour="Classic Chip" data-color="#2f1b10" data-cursor="hover">Classic Chip</button>
-          <button class="flavour" data-flavour="Brown Butter" data-color="#7a4a24" data-cursor="hover">Brown Butter</button>
-          <button class="flavour" data-flavour="Raspberry White" data-color="#c2506a" data-cursor="hover">Raspberry White</button>
-          <button class="flavour" data-flavour="Double Fudge" data-color="#3a2418" data-cursor="hover">Double Fudge</button>
-          <button class="flavour" data-flavour="Matcha White" data-color="#6f8f4a" data-cursor="hover">Matcha White</button>
-          <button class="flavour" data-flavour="Salted Caramel" data-color="#c98a2c" data-cursor="hover">Salted Caramel</button>
+          <button class="flavour" data-flavour="Classic Chip" data-color="#2f1b10" data-image="shop-classic-chip.webp" data-cursor="hover">Classic Chip</button>
+          <button class="flavour" data-flavour="Brown Butter" data-color="#7a4a24" data-image="shop-brown-butter.webp" data-cursor="hover">Brown Butter</button>
+          <button class="flavour" data-flavour="Raspberry White" data-color="#c2506a" data-image="shop-raspberry-white.webp" data-cursor="hover">Raspberry White</button>
+          <button class="flavour" data-flavour="Double Fudge" data-color="#3a2418" data-image="shop-double-fudge.webp" data-cursor="hover">Double Fudge</button>
+          <button class="flavour" data-flavour="Matcha White" data-color="#6f8f4a" data-image="cookie-flavour-trio.webp" data-cursor="hover">Matcha White</button>
+          <button class="flavour" data-flavour="Salted Caramel" data-color="#c98a2c" data-image="cookies-and-milk.webp" data-cursor="hover">Salted Caramel</button>
         </div>
 
         <div class="box__tray" id="boxTray" aria-label="Your box"></div>
@@ -256,6 +315,15 @@
       </div>
 
       <aside class="box__visual" data-parallax>
+        <img
+          class="box__photo"
+          src="/images/cookie-gift-box.webp"
+          alt="A gift box filled with an assortment of cookies"
+          width="736"
+          height="981"
+          loading="lazy"
+          decoding="async"
+        />
         <div class="box__lid">
           <span>Crumb &amp; Co.</span>
           <small>contains: pure happiness</small>

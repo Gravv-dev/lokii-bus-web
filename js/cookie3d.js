@@ -4,8 +4,6 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
-const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /* ---------- procedural cookie texture ---------- */
 function makeCookieTexture() {
   const size = 512;
@@ -79,6 +77,7 @@ function cookieShape(radius = 1) {
 }
 
 export function initCookie3D(canvas) {
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!canvas || prefersReduced) return null;
 
   const renderer = new THREE.WebGLRenderer({
@@ -87,7 +86,8 @@ export function initCookie3D(canvas) {
     alpha: true,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCoarsePointer ? 1.25 : 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -109,7 +109,7 @@ export function initCookie3D(canvas) {
   const key = new THREE.DirectionalLight(0xfff1dc, 2.1);
   key.position.set(3.4, 5.2, 4.2);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(512, 512);
   key.shadow.camera.near = 1;
   key.shadow.camera.far = 20;
   key.shadow.camera.left = key.shadow.camera.bottom = -5;
@@ -253,33 +253,36 @@ export function initCookie3D(canvas) {
   canvas.addEventListener("pointerdown", burst);
   window.__cookieBurst = burst;
 
-  const io = new IntersectionObserver(
-    ([entry]) => (state.visible = entry.isIntersecting),
-    { threshold: 0.02 }
-  );
-  io.observe(canvas);
-
   /* ---------- render loop ---------- */
   const clock = new THREE.Clock();
-  let raf;
-  function tick() {
+  let raf = 0;
+  let running = false;
+  let lastFrame = 0;
+  const frameInterval = isCoarsePointer ? 1000 / 30 : 0;
+
+  function tick(timestamp) {
+    if (!running) return;
     raf = requestAnimationFrame(tick);
     if (!state.visible || document.hidden) return;
+    if (timestamp - lastFrame < frameInterval) return;
+
+    const delta = lastFrame ? Math.min((timestamp - lastFrame) / (1000 / 60), 2) : 1;
+    lastFrame = timestamp;
 
     const t = clock.getElapsedTime();
     const base = group.userData.baseScale || 1;
 
     // idle spin + user boost decay
-    state.spinBoost *= 0.94;
-    state.squish *= 0.88;
+    state.spinBoost *= Math.pow(0.94, delta);
+    state.squish *= Math.pow(0.88, delta);
 
     const targetTiltY = state.pointer.x * 0.45;
     const targetTiltX = state.pointer.y * 0.28;
 
-    group.rotation.y += state.spin + state.spinBoost;
-    group.rotation.y += (targetTiltY - (group.rotation.y % (Math.PI * 2)) * 0.02) * 0.012;
-    group.rotation.x += (targetTiltX - group.rotation.x) * 0.05;
-    group.rotation.z += (-state.pointer.x * 0.12 - group.rotation.z) * 0.04;
+    group.rotation.y += (state.spin + state.spinBoost) * delta;
+    group.rotation.y += (targetTiltY - (group.rotation.y % (Math.PI * 2)) * 0.02) * (1 - Math.pow(1 - 0.012, delta));
+    group.rotation.x += (targetTiltX - group.rotation.x) * (1 - Math.pow(1 - 0.05, delta));
+    group.rotation.z += (-state.pointer.x * 0.12 - group.rotation.z) * (1 - Math.pow(1 - 0.04, delta));
 
     // gentle float + scroll drift
     const floatY = Math.sin(t * 1.1) * 0.09;
@@ -293,7 +296,7 @@ export function initCookie3D(canvas) {
     // crumbs drift
     for (let i = 0; i < crumbData.length; i++) {
       const c = crumbData[i];
-      c.a += c.sp * 0.006;
+      c.a += c.sp * 0.006 * delta;
       dummy.position.set(
         Math.cos(c.a) * c.r + group.position.x * 0.4,
         c.y + Math.sin(t * 0.6 + i) * 0.25 - state.scroll * 1.6,
@@ -309,8 +312,34 @@ export function initCookie3D(canvas) {
     renderer.render(scene, camera);
   }
 
-  // stash layout y so float doesn't fight the responsive offset
-  tick();
+  const io = new IntersectionObserver(
+    ([entry]) => {
+      state.visible = entry.isIntersecting;
+      if (state.visible) start();
+      else stop();
+    },
+    { threshold: 0.02 }
+  );
+  io.observe(canvas);
+
+  function start() {
+    if (running || document.hidden) return;
+    running = true;
+    lastFrame = 0;
+    clock.start();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+  }
+
+  const onVisibilityChange = () => {
+    if (document.hidden) stop();
+    else if (state.visible) start();
+  };
+  document.addEventListener("visibilitychange", onVisibilityChange);
 
   return {
     setScroll(p) {
@@ -318,8 +347,20 @@ export function initCookie3D(canvas) {
     },
     burst,
     destroy() {
-      cancelAnimationFrame(raf);
+      stop();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("resize", layout);
+      tex.dispose();
+      bodyGeo.dispose();
+      bodyMat.dispose();
+      chipGeo.dispose();
+      chipMat.dispose();
+      crumbGeo.dispose();
+      crumbMat.dispose();
+      shadowPlane.geometry.dispose();
+      shadowMat.dispose();
+      pmrem.dispose();
       renderer.dispose();
     },
   };
