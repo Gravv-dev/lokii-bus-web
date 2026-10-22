@@ -17,6 +17,14 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "healthcheck" {
+		if err := checkHealth(); err != nil {
+			log.Printf("health check failed: %v", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("load configuration: %v", err)
@@ -71,4 +79,17 @@ func main() {
 			log.Printf("HTTP shutdown: %v", err)
 		}
 	}
+}
+
+func checkHealth() error {
+	client := http.Client{Timeout: 3 * time.Second}
+	response, err := client.Get("http://127.0.0.1:8080/health")
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return errors.New("API is not ready")
+	}
+	return nil
 }
