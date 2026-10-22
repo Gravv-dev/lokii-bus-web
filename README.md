@@ -8,31 +8,32 @@ six-cookie visual builder are preserved.
 
 - Node.js 20.9 or later and npm
 - Go 1.25 or later (for running the API without Docker)
-- Docker Compose (for the included PostgreSQL and API services)
+- Docker Compose (for the included PostgreSQL, API, and storefront services)
 
 ## Start locally
 
 1. Copy `.env.example` to `.env` and change the local database password. The
    example values are for local development only.
-2. Start PostgreSQL and the API:
+2. Start PostgreSQL, the API, and the storefront:
 
    ```bash
    docker compose up --build
    ```
 
-   The API listens at `http://localhost:8080`, and PostgreSQL is only reachable
-   on the private Compose network. The `postgres_data` volume is persistent.
+   Open the storefront at [http://localhost:3000](http://localhost:3000). The
+   API listens at `http://localhost:8080`, and PostgreSQL is only reachable on
+   the private Compose network. The `postgres_data` volume is persistent.
    Migrations run automatically at API startup and are recorded in
    `schema_migrations`; they do not drop or reset existing data.
-3. In another terminal, install and run the storefront:
+3. To run the storefront directly on your host instead, install and start it in
+   another terminal:
 
    ```bash
    npm install
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000). Set
-   `NEXT_PUBLIC_API_BASE_URL` in `.env` when the API is hosted elsewhere.
+   Set `NEXT_PUBLIC_API_BASE_URL` in `.env` when the API is hosted elsewhere.
 
 For a Go-only API run, set `DATABASE_URL`, `CORS_ALLOWED_ORIGINS`, and the
 optional cookie/admin environment variables for a PostgreSQL instance reachable

@@ -32,5 +32,20 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  frontend:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --hostname 0.0.0.0"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    restart: unless-stopped
+
 volumes:
   postgres_data:
