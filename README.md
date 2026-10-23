@@ -178,3 +178,27 @@ npm run build
 ```
 
 For more API details, see [backend/API.md](./backend/API.md).
+
+kubectl create namespace three-tier-application
+kubectl -n three-tier-application create secret generic postgres-secret \
+  --from-literal=POSTGRES_DB=crumbco \
+  --from-literal=POSTGRES_USER=crumbco \
+  --from-literal=POSTGRES_PASSWORD='<your-strong-password>'
+kubectl apply -f K8s/Postgres.yml
+
+
+// this is the frontend side ...
+
+
+kubectl create namespace three-tier-application
+
+kubectl -n three-tier-application create secret generic postgres-secret \
+  --from-literal=POSTGRES_DB='<database>' \
+  --from-literal=POSTGRES_USER='<user>' \
+  --from-literal=POSTGRES_PASSWORD='<strong-password>'
+
+kubectl -n three-tier-application create secret generic backend-secret \
+  --from-literal=DATABASE_URL='postgres://<user>:<url-encoded-password>@postgres-service:5432/<database>?sslmode=disable'
+
+kubectl -n three-tier-application create configmap backend-config \
+  --from-literal=CORS_ALLOWED_ORIGINS='https://<your-website-domain>'
