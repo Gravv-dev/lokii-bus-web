@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: deployment
+metadata:
+  name: frontend-deployment
+  namespace: three-tier-application
+  labels:
+    app: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: garry12132/production-level-application-frontend
+          ports:
+            - containerPort: 3000
